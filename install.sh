@@ -75,8 +75,9 @@ if [ "$DO_LOGIN" = true ]; then
   echo -e "${BOLD}로그인을 시작합니다...${RESET}\n"
   ohmypetbook login </dev/tty
   echo ""
-  echo -e "서비스 등록 (자동 시작):"
-  echo -e "  ${BOLD}ohmypetbook install${RESET}"
+  info "서비스 등록 중..."
+  ohmypetbook install
+  info "서비스 등록 완료 ✓"
 else
   echo -e "다음 단계:"
   echo -e "  ${BOLD}1.${RESET} ohmypetbook login      — 브라우저 로그인"

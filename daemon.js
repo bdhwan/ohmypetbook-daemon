@@ -17,6 +17,7 @@ import {
   generatePetId, deviceInfo, validatePet, setPetOffline
 } from "./lib/auth.js";
 import { pushToFirestore, listenFirestore, watchLocal, initRemoteHash, setLoadEnvSecretsCallback, setPushRef, setGetIdTokenCallback, startHeartbeat } from "./lib/sync.js";
+import { listenChats } from "./lib/chat.js";
 import { installService, uninstallService } from "./lib/service.js";
 
 const app = initializeApp(firebaseConfig);
@@ -299,6 +300,9 @@ async function cmdRun() {
 
   startHeartbeat(db, uid, petId);
   log("💓 Heartbeat 시작 (60초)");
+
+  listenChats(db, uid, petId);
+
   log("🚀 데몬 실행 중...");
 
   const shutdown = async () => {

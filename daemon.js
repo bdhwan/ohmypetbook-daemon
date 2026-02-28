@@ -69,20 +69,20 @@ async function loadEnvAndSecrets(uid, petId) {
     const userSnap = await getDoc(doc(db, "users", uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
 
-    // 2. 디바이스 레벨 (runtime/env 문서)
-    const envSnap = await getDoc(doc(db, "users", uid, "pets", petId, "runtime", "env"));
-    const envData = envSnap.exists() ? envSnap.data() : {};
+    // 2. 디바이스 레벨 (pet 메인 doc)
+    const petSnap = await getDoc(doc(db, "users", uid, "pets", petId));
+    const petData = petSnap.exists() ? petSnap.data() : {};
 
     // 환경변수 머지 (계정 < 디바이스)
     const envVars = {
       ...(userData.envVars || {}),
-      ...(envData.deviceEnvVars || {}),
+      ...(petData.deviceEnvVars || {}),
     };
 
     // 시크릿 머지 (계정 < 디바이스)
     const allSecrets = {
       ...(userData.secrets || {}),
-      ...(envData.deviceSecrets || {}),
+      ...(petData.deviceSecrets || {}),
     };
 
     // 시크릿 복호화

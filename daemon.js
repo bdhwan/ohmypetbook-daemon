@@ -380,6 +380,24 @@ switch (command) {
     }
     break;
   }
+  case "update": {
+    console.log("📦 업데이트 확인 중...");
+    try {
+      const current = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf-8")).version;
+      const latest = execSync("npm view ohmypetbook version", { encoding: "utf-8", timeout: 15000 }).trim();
+      if (current === latest) {
+        console.log(`✅ 이미 최신 버전입니다 (v${current})`);
+      } else {
+        console.log(`🔄 v${current} → v${latest} 업데이트 중...`);
+        execSync("npm update -g ohmypetbook", { encoding: "utf-8", timeout: 60000, stdio: "inherit" });
+        console.log(`✅ 업데이트 완료! v${latest}`);
+        console.log("   서비스 재시작: launchctl kickstart -k gui/$(id -u)/com.ohmypetbook.daemon");
+      }
+    } catch (e) {
+      console.error(`❌ 업데이트 실패: ${e.message}`);
+    }
+    break;
+  }
   case "logout": {
     const saved = loadAuth();
     if (saved?.petId && saved?.uid && saved?.refreshToken) {
@@ -406,6 +424,7 @@ switch (command) {
     ohmypetbook run           포그라운드 실행
     ohmypetbook status        상태 확인
     ohmypetbook config        설정 확인/변경 (openclawPath 등)
+    ohmypetbook update        최신 버전으로 업데이트
     ohmypetbook logout        pet 해제 + 서비스 제거
     `);
 }

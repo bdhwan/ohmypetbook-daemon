@@ -27,12 +27,21 @@ if [ "$NODE_VERSION" -lt 18 ]; then
 fi
 info "Node.js $(node -v) ✓"
 
-# ── 2. npm install -g ──
+# ── 2. 이전 설치 정리 ──
+if [ -f "/usr/local/bin/ohmypetbook" ] && file "/usr/local/bin/ohmypetbook" | grep -q "text"; then
+  warn "이전 설치 발견 — 정리합니다."
+  sudo rm -f "/usr/local/bin/ohmypetbook" 2>/dev/null || rm -f "/usr/local/bin/ohmypetbook" 2>/dev/null || true
+fi
+if [ -d "$HOME/.ohmypetbook/node_modules" ]; then
+  rm -rf "$HOME/.ohmypetbook/node_modules" "$HOME/.ohmypetbook/daemon.js" "$HOME/.ohmypetbook/lib" 2>/dev/null || true
+fi
+
+# ── 3. npm install -g ──
 info "ohmypetbook 설치 중..."
 npm install -g ohmypetbook 2>&1 | tail -3
 info "설치 완료 ✓"
 
-# ── 3. 설정 디렉토리 확인 ──
+# ── 4. 설정 디렉토리 확인 ──
 mkdir -p "$HOME/.ohmypetbook"
 if [ ! -f "$HOME/.ohmypetbook/ohmypetbook.json" ]; then
   echo '{"openclawPath":"'"$HOME/.openclaw"'"}' > "$HOME/.ohmypetbook/ohmypetbook.json"
@@ -44,7 +53,7 @@ if [ ! -f "$HOME/.openclaw/openclaw.json" ]; then
   echo '{}' > "$HOME/.openclaw/openclaw.json"
 fi
 
-# ── 4. --login 옵션 처리 ──
+# ── 5. --login 옵션 처리 ──
 DO_LOGIN=false
 for arg in "$@"; do
   case "$arg" in

@@ -1,6 +1,6 @@
 {
   "name": "ohmypetbook",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OhMyPetBook daemon — OpenClaw device sync agent",
   "type": "module",
   "main": "daemon.js",

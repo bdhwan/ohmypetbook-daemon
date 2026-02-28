@@ -211,6 +211,7 @@ async function cmdLogin() {
     });
 
     printSuccess(result.email, petName, petId);
+    process.exit(0);
   } else {
     // 수동 코드 입력
     await doClaimDevice(result.code, petId, info);
@@ -246,6 +247,7 @@ async function doClaimDevice(code, petId, info) {
   });
 
   printSuccess(email, petName, petId);
+  process.exit(0);
 }
 
 function printSuccess(email, petName, petId) {

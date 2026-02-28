@@ -73,7 +73,7 @@ echo -e "\n${BOLD}${GREEN}✓ OhMyPetBook 설치 완료!${RESET}\n"
 
 if [ "$DO_LOGIN" = true ]; then
   echo -e "${BOLD}로그인을 시작합니다...${RESET}\n"
-  ohmypetbook login
+  ohmypetbook login </dev/tty
   echo ""
   echo -e "서비스 등록 (자동 시작):"
   echo -e "  ${BOLD}ohmypetbook install${RESET}"

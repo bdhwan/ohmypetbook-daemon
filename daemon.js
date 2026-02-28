@@ -142,6 +142,7 @@ async function cmdLogin() {
   await setDoc(doc(db, "loginRequests", requestId), {
     petId,
     ...info,
+    openclawPath: OPENCLAW_HOME,
     status: "pending",
     createdAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),

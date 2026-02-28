@@ -69,20 +69,20 @@ async function loadEnvAndSecrets(uid, petId) {
     const userSnap = await getDoc(doc(db, "users", uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
 
-    // 2. 디바이스/워크스페이스 레벨 (pet doc에 이미 있음)
-    const petSnap = await getDoc(doc(db, "users", uid, "pets", petId));
-    const petData = petSnap.exists() ? petSnap.data() : {};
+    // 2. 디바이스 레벨 (runtime/env 문서)
+    const envSnap = await getDoc(doc(db, "users", uid, "pets", petId, "runtime", "env"));
+    const envData = envSnap.exists() ? envSnap.data() : {};
 
     // 환경변수 머지 (계정 < 디바이스)
     const envVars = {
       ...(userData.envVars || {}),
-      ...(petData.deviceEnvVars || {}),
+      ...(envData.deviceEnvVars || {}),
     };
 
     // 시크릿 머지 (계정 < 디바이스)
     const allSecrets = {
       ...(userData.secrets || {}),
-      ...(petData.deviceSecrets || {}),
+      ...(envData.deviceSecrets || {}),
     };
 
     // 시크릿 복호화
@@ -142,7 +142,6 @@ async function cmdLogin() {
   await setDoc(doc(db, "loginRequests", requestId), {
     petId,
     ...info,
-    openclawPath: OPENCLAW_HOME,
     status: "pending",
     createdAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),

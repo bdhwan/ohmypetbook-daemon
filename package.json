@@ -1,0 +1,35 @@
+{
+  "name": "ohmypetbook",
+  "version": "1.0.0",
+  "description": "OhMyPetBook daemon — OpenClaw device sync agent",
+  "type": "module",
+  "main": "daemon.js",
+  "bin": {
+    "ohmypetbook": "./daemon.js"
+  },
+  "scripts": {
+    "start": "node daemon.js run",
+    "login": "node daemon.js login"
+  },
+  "keywords": ["openclaw", "ohmypetbook", "daemon", "iot", "device-sync"],
+  "author": "bdhwan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bdhwan/ohmypetbook-daemon.git"
+  },
+  "homepage": "https://ohmypetbook.com",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "daemon.js",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "firebase": "^11.4.0"
+  }
+}

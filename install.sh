@@ -28,12 +28,19 @@ fi
 info "Node.js $(node -v) ✓"
 
 # ── 2. 이전 설치 정리 ──
-if [ -f "/usr/local/bin/ohmypetbook" ] && file "/usr/local/bin/ohmypetbook" | grep -q "text"; then
-  warn "이전 설치 발견 — 정리합니다."
-  sudo rm -f "/usr/local/bin/ohmypetbook" 2>/dev/null || rm -f "/usr/local/bin/ohmypetbook" 2>/dev/null || true
+# /usr/local/bin에 이전 wrapper가 있으면 제거 (npm 설치 경로와 충돌)
+if [ -f "/usr/local/bin/ohmypetbook" ]; then
+  warn "이전 설치 발견 (/usr/local/bin/ohmypetbook) — 정리합니다."
+  if [ -w "/usr/local/bin/ohmypetbook" ]; then
+    rm -f "/usr/local/bin/ohmypetbook"
+  else
+    sudo rm -f "/usr/local/bin/ohmypetbook"
+  fi
+  info "이전 설치 제거 완료 ✓"
 fi
+# 소스 기반 설치 잔여물 정리
 if [ -d "$HOME/.ohmypetbook/node_modules" ]; then
-  rm -rf "$HOME/.ohmypetbook/node_modules" "$HOME/.ohmypetbook/daemon.js" "$HOME/.ohmypetbook/lib" 2>/dev/null || true
+  rm -rf "$HOME/.ohmypetbook/node_modules" "$HOME/.ohmypetbook/daemon.js" "$HOME/.ohmypetbook/lib" "$HOME/.ohmypetbook/package.json" 2>/dev/null || true
 fi
 
 # ── 3. npm install -g ──

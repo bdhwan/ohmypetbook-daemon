@@ -16,7 +16,7 @@ import {
   loadAuth, saveAuth, savePetbookConfig, loadPetbookConfig,
   generatePetId, deviceInfo, validatePet, setPetOffline
 } from "./lib/auth.js";
-import { pushToFirestore, listenFirestore, watchLocal, initRemoteHash, setLoadEnvSecretsCallback, setPushRef, setGetIdTokenCallback } from "./lib/sync.js";
+import { pushToFirestore, listenFirestore, watchLocal, initRemoteHash, setLoadEnvSecretsCallback, setPushRef, setGetIdTokenCallback, startHeartbeat } from "./lib/sync.js";
 import { installService, uninstallService } from "./lib/service.js";
 
 const app = initializeApp(firebaseConfig);
@@ -296,6 +296,9 @@ async function cmdRun() {
 
   watchLocal(db, uid, petId);
   log("👀 로컬 파일 감시 시작");
+
+  startHeartbeat(db, uid, petId);
+  log("💓 Heartbeat 시작 (60초)");
   log("🚀 데몬 실행 중...");
 
   const shutdown = async () => {

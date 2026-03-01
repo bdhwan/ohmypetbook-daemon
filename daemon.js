@@ -162,18 +162,7 @@ async function cmdLogin() {
   const result = await new Promise((resolve, reject) => {
     let settled = false;
 
-    // Firestore 실시간 구독
-    const unsub = onSnapshot(doc(db, "loginRequests", requestId), (snap) => {
-      const data = snap.data();
-      if (data?.status === "approved" && data?.customToken && !settled) {
-        settled = true;
-        unsub();
-        resolve({ type: "auto", customToken: data.customToken, uid: data.uid, email: data.email });
-      }
-    });
-
-    // 수동 코드 입력 (폴백)
-    // 파이프 실행 시 stdin이 EOF이므로 /dev/tty에서 읽기 시도
+    // 수동 코드 입력용 readline 준비
     let inputStream = process.stdin;
     try {
       if (!process.stdin.isTTY) {
@@ -182,6 +171,22 @@ async function cmdLogin() {
       }
     } catch {}
     const rl = readline.createInterface({ input: inputStream, output: process.stdout });
+
+    const cleanup = () => {
+      rl.close();
+      if (inputStream !== process.stdin) try { inputStream.destroy(); } catch {}
+    };
+
+    // Firestore 실시간 구독
+    const unsub = onSnapshot(doc(db, "loginRequests", requestId), (snap) => {
+      const data = snap.data();
+      if (data?.status === "approved" && data?.customToken && !settled) {
+        settled = true;
+        unsub();
+        cleanup();
+        resolve({ type: "auto", customToken: data.customToken, uid: data.uid, email: data.email });
+      }
+    });
     console.log("  브라우저에서 승인하면 자동으로 진행됩니다.");
     console.log("  또는 등록 코드를 직접 입력하세요:");
     console.log("");
@@ -199,6 +204,7 @@ async function cmdLogin() {
       if (!settled) {
         settled = true;
         unsub();
+        cleanup();
         reject(new Error("등록 시간 초과 (10분)"));
       }
     }, 10 * 60 * 1000);

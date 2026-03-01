@@ -336,7 +336,7 @@ function cmdStatus() {
     } catch { console.log("  서비스: \x1b[33m미등록\x1b[0m"); }
   } else if (platform === "linux") {
     try {
-      const s = execSync("systemctl --user is-active petbook-daemon", { encoding: "utf-8" }).trim();
+      const s = execSync("systemctl --user is-active ohmypetbook-daemon", { encoding: "utf-8" }).trim();
       console.log(`  서비스: \x1b[32m${s}\x1b[0m`);
     } catch { console.log("  서비스: \x1b[33m미등록\x1b[0m"); }
   }

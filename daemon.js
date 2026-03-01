@@ -154,7 +154,7 @@ async function cmdLogin() {
   console.log("");
   console.log("  \x1b[1m🐾 OhMyPetBook 기기 등록\x1b[0m");
   console.log("");
-  console.log("  아래 URL을 브라우저에서 열어주세요:");
+  console.log("  브라우저에서 로그인하세요:");
   console.log(`  \x1b[4m\x1b[36m${url}\x1b[0m`);
   console.log("");
 
@@ -187,10 +187,9 @@ async function cmdLogin() {
         resolve({ type: "auto", customToken: data.customToken, uid: data.uid, email: data.email });
       }
     });
-    console.log("  브라우저에서 승인하면 자동으로 진행됩니다.");
-    console.log("  또는 등록 코드를 직접 입력하세요:");
+    console.log("  로그인하면 자동으로 진행됩니다.");
     console.log("");
-    rl.question("  등록 코드 (자동 대기 중...): ", (code) => {
+    rl.question("  또는 등록 코드 입력: ", (code) => {
       rl.close();
       if (!settled && code.trim()) {
         settled = true;

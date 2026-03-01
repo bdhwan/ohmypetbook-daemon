@@ -201,6 +201,7 @@ async function cmdLogin() {
 
     printSuccess(result.email, petName, petId);
     process.exit(0);
+  }
 }
 
 function printSuccess(email, petName, petId) {

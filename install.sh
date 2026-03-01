@@ -95,6 +95,8 @@ else
     info "CLI 설치: ohmypetbook ✓" || \
     warn "PATH에 직접 추가하세요: export PATH=\"$INSTALL_DIR:\$PATH\""
 fi
+# bash 해시 캐시 초기화 (옛 경로 캐시 방지)
+hash -r 2>/dev/null || true
 
 # ── 6. 설정 디렉토리 확인 ──
 mkdir -p "$HOME/.ohmypetbook"
@@ -108,27 +110,47 @@ if [ ! -f "$HOME/.openclaw/openclaw.json" ]; then
   echo '{}' > "$HOME/.openclaw/openclaw.json"
 fi
 
-# ── 7. --login 옵션 처리 ──
-DO_LOGIN=false
-for arg in "$@"; do
-  case "$arg" in
-    --login) DO_LOGIN=true ;;
-  esac
-done
+# ── 7. 로그인 여부 확인 ──
+# 이미 로그인된 상태면 스킵
+CONFIG_FILE="$HOME/.ohmypetbook/ohmypetbook.json"
+ALREADY_LOGGED_IN=false
+if [ -f "$CONFIG_FILE" ] && command -v node &>/dev/null; then
+  HAS_TOKEN=$(node -e "try{const c=JSON.parse(require('fs').readFileSync('$CONFIG_FILE','utf-8'));console.log(c.token?'yes':'no')}catch{console.log('no')}" 2>/dev/null)
+  [ "$HAS_TOKEN" = "yes" ] && ALREADY_LOGGED_IN=true
+fi
 
 # ── 완료 ──
 echo -e "\n${BOLD}${GREEN}✓ OhMyPetBook 설치 완료!${RESET}\n"
 
-if [ "$DO_LOGIN" = true ]; then
-  echo -e "${BOLD}로그인을 시작합니다...${RESET}\n"
-  ohmypetbook login
+if [ "$ALREADY_LOGGED_IN" = true ]; then
+  info "이미 로그인되어 있습니다."
   echo ""
-  echo -e "서비스 등록 (자동 시작):"
+  echo -e "서비스 재시작:"
   echo -e "  ${BOLD}ohmypetbook install${RESET}"
 else
-  echo -e "다음 단계:"
-  echo -e "  ${BOLD}1.${RESET} ohmypetbook login      — 브라우저 로그인"
-  echo -e "  ${BOLD}2.${RESET} ohmypetbook install    — 서비스 등록 (자동 시작)"
+  # --login 플래그 또는 인터랙티브 모드면 바로 로그인
+  DO_LOGIN=false
+  for arg in "$@"; do
+    [ "$arg" = "--login" ] && DO_LOGIN=true
+  done
+  # 터미널이 인터랙티브면 물어보기
+  if [ "$DO_LOGIN" = false ] && [ -t 0 ]; then
+    echo -ne "지금 바로 로그인하시겠습니까? [Y/n] "
+    read -r REPLY
+    [ -z "$REPLY" ] || [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ] && DO_LOGIN=true
+  fi
+
+  if [ "$DO_LOGIN" = true ]; then
+    echo -e "${BOLD}로그인을 시작합니다...${RESET}\n"
+    "$WRAPPER" login
+    echo ""
+    echo -e "서비스 등록 (자동 시작):"
+    echo -e "  ${BOLD}ohmypetbook install${RESET}"
+  else
+    echo -e "다음 단계:"
+    echo -e "  ${BOLD}1.${RESET} ohmypetbook login      — 브라우저 로그인"
+    echo -e "  ${BOLD}2.${RESET} ohmypetbook install    — 서비스 등록 (자동 시작)"
+  fi
 fi
 echo ""
 echo -e "기타 명령:"

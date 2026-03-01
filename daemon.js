@@ -177,9 +177,8 @@ async function cmdLogin() {
     let inputStream = process.stdin;
     try {
       if (!process.stdin.isTTY) {
-        const { openSync, createReadStream } = await import('fs');
-        const fd = openSync('/dev/tty', 'r');
-        inputStream = createReadStream(null, { fd });
+        const fd = fs.openSync('/dev/tty', 'r');
+        inputStream = fs.createReadStream(null, { fd });
       }
     } catch {}
     const rl = readline.createInterface({ input: inputStream, output: process.stdout });

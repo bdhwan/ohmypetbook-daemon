@@ -130,9 +130,8 @@ echo -e "\n${BOLD}${GREEN}✓ OhMyPetBook 설치 완료!${RESET}\n"
 
 if [ "$ALREADY_LOGGED_IN" = true ]; then
   info "이미 로그인되어 있습니다."
-  echo ""
-  echo -e "서비스 재시작:"
-  echo -e "  ${BOLD}ohmypetbook install${RESET}"
+  info "서비스 등록 중..."
+  "$WRAPPER" install
 else
   # --login 플래그 또는 인터랙티브 모드면 바로 로그인
   DO_LOGIN=false
@@ -150,8 +149,8 @@ else
     echo -e "${BOLD}로그인을 시작합니다...${RESET}\n"
     "$WRAPPER" login
     echo ""
-    echo -e "서비스 등록 (자동 시작):"
-    echo -e "  ${BOLD}ohmypetbook install${RESET}"
+    info "서비스 등록 중..."
+    "$WRAPPER" install
   else
     echo -e "다음 단계:"
     echo -e "  ${BOLD}1.${RESET} ohmypetbook login      — 브라우저 로그인"

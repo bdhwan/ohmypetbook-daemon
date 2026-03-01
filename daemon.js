@@ -173,7 +173,16 @@ async function cmdLogin() {
     });
 
     // 수동 코드 입력 (폴백)
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    // 파이프 실행 시 stdin이 EOF이므로 /dev/tty에서 읽기 시도
+    let inputStream = process.stdin;
+    try {
+      if (!process.stdin.isTTY) {
+        const { openSync, createReadStream } = await import('fs');
+        const fd = openSync('/dev/tty', 'r');
+        inputStream = createReadStream(null, { fd });
+      }
+    } catch {}
+    const rl = readline.createInterface({ input: inputStream, output: process.stdout });
     console.log("  브라우저에서 승인하면 자동으로 진행됩니다.");
     console.log("  또는 등록 코드를 직접 입력하세요:");
     console.log("");

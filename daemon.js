@@ -10,7 +10,7 @@ import os from "os";
 import crypto from "crypto";
 import readline from "readline";
 
-import { firebaseConfig, PETBOOK_CONFIG, CONFIG_FILE, LOG_FILE, OPENCLAW_HOME, CLIENT_URL, CLAIM_DEVICE_URL, REFRESH_SESSION_URL, DECRYPT_SECRETS_URL } from "./lib/config.js";
+import { firebaseConfig, PETBOOK_CONFIG, CONFIG_FILE, LOG_FILE, OPENCLAW_HOME, CLIENT_URL, CLAIM_DEVICE_URL, REFRESH_SESSION_URL, DECRYPT_SECRETS_URL, DAEMON_VERSION } from "./lib/config.js";
 import { log } from "./lib/log.js";
 import {
   loadAuth, saveAuth, savePetbookConfig, loadPetbookConfig,
@@ -398,6 +398,11 @@ switch (command) {
     }
     break;
   }
+  case "version":
+  case "--version":
+  case "-v":
+    console.log(DAEMON_VERSION);
+    break;
   case "logout": {
     const saved = loadAuth();
     if (saved?.petId && saved?.uid && saved?.refreshToken) {
@@ -425,6 +430,7 @@ switch (command) {
     ohmypetbook status        상태 확인
     ohmypetbook config        설정 확인/변경 (openclawPath 등)
     ohmypetbook update        최신 버전으로 업데이트
+    ohmypetbook version       버전 확인
     ohmypetbook logout        pet 해제 + 서비스 제거
     `);
 }

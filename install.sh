@@ -81,7 +81,13 @@ if [ -z "$NODE" ]; then
   echo "Error: Node.js not found" >&2
   exit 1
 fi
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SOURCE="$0"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
 exec "$NODE" "$SCRIPT_DIR/daemon.js" "$@"
 WRAPPER_EOF
 chmod +x "$WRAPPER"

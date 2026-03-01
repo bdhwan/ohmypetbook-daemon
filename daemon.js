@@ -162,48 +162,23 @@ async function cmdLogin() {
   const result = await new Promise((resolve, reject) => {
     let settled = false;
 
-    // 수동 코드 입력용 readline 준비
-    let inputStream = process.stdin;
-    try {
-      if (!process.stdin.isTTY) {
-        const fd = fs.openSync('/dev/tty', 'r');
-        inputStream = fs.createReadStream(null, { fd });
-      }
-    } catch {}
-    const rl = readline.createInterface({ input: inputStream, output: process.stdout });
-
-    const cleanup = () => {
-      rl.close();
-      if (inputStream !== process.stdin) try { inputStream.destroy(); } catch {}
-    };
-
-    // Firestore 실시간 구독
+    // Firestore 실시간 구독 — 브라우저 승인 대기
     const unsub = onSnapshot(doc(db, "loginRequests", requestId), (snap) => {
       const data = snap.data();
       if (data?.status === "approved" && data?.customToken && !settled) {
         settled = true;
         unsub();
-        cleanup();
         resolve({ type: "auto", customToken: data.customToken, uid: data.uid, email: data.email });
       }
     });
     console.log("  로그인하면 자동으로 진행됩니다.");
-    console.log("");
-    rl.question("  또는 등록 코드 입력: ", (code) => {
-      rl.close();
-      if (!settled && code.trim()) {
-        settled = true;
-        unsub();
-        resolve({ type: "manual", code: code.trim() });
-      }
-    });
+    console.log("  (다른 기기 브라우저에서 열어도 됩니다)");
 
     // 10분 타임아웃
     setTimeout(() => {
       if (!settled) {
         settled = true;
         unsub();
-        cleanup();
         reject(new Error("등록 시간 초과 (10분)"));
       }
     }, 10 * 60 * 1000);
@@ -226,42 +201,6 @@ async function cmdLogin() {
 
     printSuccess(result.email, petName, petId);
     process.exit(0);
-  } else {
-    // 수동 코드 입력
-    await doClaimDevice(result.code, petId, info);
-  }
-}
-
-async function doClaimDevice(code, petId, info) {
-  console.log("  🔐 등록 중...");
-
-  const resp = await fetch(CLAIM_DEVICE_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, petId, deviceInfo: info }),
-  });
-
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    console.error(`  ❌ ${err.error || `등록 실패 (${resp.status})`}`);
-    process.exit(1);
-  }
-
-  const { customToken, uid, email } = await resp.json();
-  const cred = await signInWithCustomToken(auth, customToken);
-  const petName = info.hostname || os.hostname();
-
-  saveAuth({
-    uid,
-    email,
-    petId,
-    petName,
-    refreshToken: cred.user.refreshToken,
-    savedAt: new Date().toISOString()
-  });
-
-  printSuccess(email, petName, petId);
-  process.exit(0);
 }
 
 function printSuccess(email, petName, petId) {

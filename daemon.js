@@ -356,6 +356,26 @@ switch (command) {
   case "-v":
     console.log(DAEMON_VERSION);
     break;
+  case "restart": {
+    const label = "com.ohmypetbook.daemon";
+    try {
+      execSync(`launchctl kickstart -k gui/$(id -u)/${label}`, { encoding: "utf-8", timeout: 10000 });
+      console.log("  ✓ 서비스 재시작 완료\n");
+    } catch (e) {
+      console.error(`  ❌ 재시작 실패: ${e.message}`);
+      console.error("  서비스가 등록되어 있는지 확인: ohmypetbook status");
+    }
+    break;
+  }
+  case "logs": {
+    const lines = process.argv[3] || "50";
+    try {
+      execSync(`tail -n ${lines} ${LOG_FILE}`, { stdio: "inherit", encoding: "utf-8" });
+    } catch {
+      console.error(`  ❌ 로그 파일을 찾을 수 없음: ${LOG_FILE}`);
+    }
+    break;
+  }
   case "logout": {
     const saved = loadAuth();
     if (saved?.petId && saved?.uid && saved?.refreshToken) {
@@ -384,6 +404,8 @@ switch (command) {
     ohmypetbook config        설정 확인/변경 (openclawPath 등)
     ohmypetbook update        최신 버전으로 업데이트
     ohmypetbook version       버전 확인
+    ohmypetbook restart       서비스 재시작
+    ohmypetbook logs [N]      최근 로그 보기 (기본 50줄)
     ohmypetbook logout        pet 해제 + 서비스 제거
     `);
 }

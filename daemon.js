@@ -368,9 +368,17 @@ switch (command) {
     break;
   }
   case "logs": {
-    const lines = process.argv[3] || "50";
+    const follow = process.argv.includes("--follow") || process.argv.includes("-f");
+    const linesArg = process.argv.slice(3).find(a => !a.startsWith("-")) || "50";
     try {
-      execSync(`tail -n ${lines} ${LOG_FILE}`, { stdio: "inherit", encoding: "utf-8" });
+      if (follow) {
+        const { spawn } = await import("child_process");
+        const tail = spawn("tail", ["-n", linesArg, "-f", LOG_FILE], { stdio: "inherit" });
+        tail.on("error", () => console.error(`  ❌ 로그 파일을 찾을 수 없음: ${LOG_FILE}`));
+        await new Promise(() => {}); // block forever
+      } else {
+        execSync(`tail -n ${linesArg} ${LOG_FILE}`, { stdio: "inherit", encoding: "utf-8" });
+      }
     } catch {
       console.error(`  ❌ 로그 파일을 찾을 수 없음: ${LOG_FILE}`);
     }
@@ -405,7 +413,7 @@ switch (command) {
     ohmypetbook update        최신 버전으로 업데이트
     ohmypetbook version       버전 확인
     ohmypetbook restart       서비스 재시작
-    ohmypetbook logs [N]      최근 로그 보기 (기본 50줄)
+    ohmypetbook logs [N]      최근 로그 보기 (기본 50줄, -f로 실시간)
     ohmypetbook logout        pet 해제 + 서비스 제거
     `);
 }

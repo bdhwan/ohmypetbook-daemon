@@ -10,7 +10,7 @@ import os from "os";
 import crypto from "crypto";
 import readline from "readline";
 
-import { firebaseConfig, PETBOOK_CONFIG, CONFIG_FILE, LOG_FILE, OPENCLAW_HOME, CLIENT_URL, CLAIM_DEVICE_URL, REFRESH_SESSION_URL, DECRYPT_SECRETS_URL, DAEMON_VERSION } from "./lib/config.js";
+import { firebaseConfig, PETBOOK_CONFIG, CONFIG_FILE, LOG_FILE, PID_FILE, OPENCLAW_HOME, CLIENT_URL, CLAIM_DEVICE_URL, REFRESH_SESSION_URL, DECRYPT_SECRETS_URL, DAEMON_VERSION } from "./lib/config.js";
 import { log } from "./lib/log.js";
 import {
   loadAuth, saveAuth, savePetbookConfig, loadPetbookConfig,
@@ -214,7 +214,46 @@ function printSuccess(email, petName, petId) {
   console.log("");
 }
 
+// ── PID Lock ──
+
+function acquirePidLock() {
+  try {
+    if (fs.existsSync(PID_FILE)) {
+      const oldPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+      if (oldPid && Number.isFinite(oldPid)) {
+        try {
+          process.kill(oldPid, 0); // check if alive
+          // alive — kill it
+          log(`⚠️ 기존 데몬 프로세스 종료 (PID ${oldPid})`);
+          process.kill(oldPid, "SIGTERM");
+          // wait a bit
+          for (let i = 0; i < 10; i++) {
+            try { process.kill(oldPid, 0); } catch { break; }
+            const start = Date.now(); while (Date.now() - start < 200) {} // sync sleep
+          }
+        } catch {
+          // not alive — stale pid file, ignore
+        }
+      }
+    }
+  } catch {}
+  fs.mkdirSync(path.dirname(PID_FILE), { recursive: true });
+  fs.writeFileSync(PID_FILE, String(process.pid));
+}
+
+function releasePidLock() {
+  try {
+    const pid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+    if (pid === process.pid) fs.unlinkSync(PID_FILE);
+  } catch {}
+}
+
 async function cmdRun() {
+  acquirePidLock();
+  process.on("exit", releasePidLock);
+  process.on("SIGTERM", () => { releasePidLock(); process.exit(0); });
+  process.on("SIGINT", () => { releasePidLock(); process.exit(0); });
+
   const saved = loadAuth();
   if (!saved?.refreshToken) {
     log("❌ 인증 정보 없음. `ohmypetbook login` 먼저 실행하세요.");
